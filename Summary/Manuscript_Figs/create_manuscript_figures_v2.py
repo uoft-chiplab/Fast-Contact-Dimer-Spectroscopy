@@ -7,30 +7,15 @@ Typically it pulls data from manuscript_data/ and saves in manuscript_figures/
 
 @author: coldatoms
 """
-import os
-import sys
-# Get the current script's directory
-current_dir = os.path.dirname(os.path.abspath(__file__))
-# Get the parent directory (clockshift)
-parent_dir = os.path.dirname(current_dir)
-# get the parent's parent directory (analysis)
-analysis_dir = os.path.join(parent_dir, 'General')
-# Add the parent parent directory to sys.path
-if analysis_dir not in sys.path:
-	sys.path.append(analysis_dir)
 
-proj_path = os.path.dirname(os.path.realpath(__file__))
-root = os.path.dirname(proj_path)
-data_path = os.path.join(proj_path, 'manuscript_data')
-
-from library import pi, adjust_lightness,paper_settings
+from scipy.constants import pi
 from scipy.optimize import curve_fit
 from scipy import interpolate
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import json
-
+from plot_settings import *
 plt.rcParams.update(paper_settings)
 
 #options
@@ -377,5 +362,3 @@ xticks = [0, 0.5, 1, 1.5, 2]
 xticklabels = [str(x) for x in xticks]
 ax.set_xticks(xticks)
 ax.set_xticklabels(xticklabels)
-
-if Show: plt.show() 
