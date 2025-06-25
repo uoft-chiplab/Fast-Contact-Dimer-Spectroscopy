@@ -11,7 +11,10 @@ from scipy.integrate import quad
 from scipy.optimize import root_scalar
 from library import pi, mK, hbar
 from baryrat import BarycentricRational
-
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parentdir = os.path.dirname(current_dir)
+theory_path = os.path.join(parentdir, 'theory')
 #
 # properties of homogeneous (bulk) gas
 #
@@ -20,7 +23,7 @@ from baryrat import BarycentricRational
 # Tabulated by eye from Vale paper and 
 # T. Enss, R.Haussmann, W. Zwerger,
 # Ann.of Phys. 326, 3,2011,770-796,
-df = pd.read_csv("Summary/theory/luttward-thermodyn.txt",skiprows=4,sep=' ')
+df = pd.read_csv(theory_path + "\\luttward-thermodyn.txt",skiprows=4,sep=' ')
 # contact density c/(k_F n) = C/k_F^4 * (3 pi^2)
 ContactInterpolation = lambda x: np.interp(x, df['T/T_F'], df['C/k_F^4']* 3*np.pi**2)
 

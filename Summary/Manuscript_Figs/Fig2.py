@@ -15,9 +15,21 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import json
+import os
+import sys
+# this is a hack to access modules in the parent directory
+# Get the current script's directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+general_files_path = os.path.join(parent_dir, 'General')
+# Add the parent directory to sys.path
+if general_files_path not in sys.path:
+	sys.path.append(general_files_path)
+
 from plot_settings import *
 plt.rcParams.update(paper_settings)
 
+data_path = os.path.join(current_dir, 'manuscript_data')
 #options
 Show = True
 

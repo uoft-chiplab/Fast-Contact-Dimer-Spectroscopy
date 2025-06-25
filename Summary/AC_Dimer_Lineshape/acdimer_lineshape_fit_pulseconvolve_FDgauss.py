@@ -12,22 +12,25 @@ import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Get the parent directory by going one level up
 parent_dir = os.path.dirname(current_dir)
+general_files_path = os.path.join(parent_dir, 'General')
 # Add the parent directory to sys.path
-if parent_dir not in sys.path:
-	sys.path.append(parent_dir)
+if general_files_path not in sys.path:
+	sys.path.append(general_files_path)
 
-sys.path.append(os.path.dirname(parent_dir))
+#files from General folder
+from library import GammaTilde, pi, h
+from plot_settings import adjust_lightness
 from data_class import Data
 from data_helper import remove_indices_formatter, bg_freq_formatter
+from UFG_analysis import calc_contact
+
 from scipy.optimize import curve_fit
 from scipy.integrate import quad
 from scipy.interpolate import interp1d
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from library import GammaTilde, pi, h, adjust_lightness
 import clockshift.pwave_fd_interp as FD # FD distribution data for interpolation functions, Ben Olsen
-from General.UFG_analysis import calc_contact
 import json
 
 ## paths
