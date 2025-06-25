@@ -15,6 +15,6 @@ To use data_class.py:
 	Data("filename",exclude_range=#,exclude_range_x='x')
 
 To see an ac dimer fit with the convolved lineshipe use acdimer_lineshape_fit_pulseconvolve_FDgauss.py. 
-
-To plot Fig.2 use Plot = 1 in create_manuscript_figures_v2.py. 
+To plot Fig.1 use Fig1.py. 
+To plot Fig.2 use Fig2.py. 
 
