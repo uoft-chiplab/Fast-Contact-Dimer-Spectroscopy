@@ -10,18 +10,15 @@ import os
 import sys
 import matplotlib.colors as mcolors
 import matplotlib.cm
-# this is a hack to access modules in the parent directory
-# Get the current script's directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Get the parent directory (clockshift)
 parent_dir = os.path.dirname(current_dir)
-# get the parent's parent directory (analysis)
 analysis_dir = os.path.dirname(parent_dir)
-# Add the parent parent directory to sys.path
-if analysis_dir not in sys.path:
-	sys.path.append(analysis_dir)
-
-from library import paper_settings, generate_plt_styles
+data_path = os.path.join(parent_dir, 'Data')
+general_files_path = os.path.join(parent_dir, 'General')
+# Add the parent directory to sys.path
+if general_files_path not in sys.path:
+	sys.path.append(general_files_path)
+from plot_settings import paper_settings, generate_plt_styles
 import pickle as pkl
 import pandas as pd
 
