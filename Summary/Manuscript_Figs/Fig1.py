@@ -101,19 +101,14 @@ res_style['markersize']=mysize
 
 fig = plt.figure(layout="constrained", figsize=(4, 3))
 gs = GridSpec(2, 4, figure=fig)
-#ax1 = fig.add_subplot(gs[0, :])
 gs0=gs[0, :].subgridspec(1, 2, wspace=0.05, hspace=0)
 ax1 = fig.add_subplot(gs0[0])
-ax1_2 = fig.add_subplot(gs0[1], sharey=ax1) # see: https://stackoverflow.com/questions/32185411/break-in-x-axis-of-matplotlib for broken x-axis plotting
+ax1_2 = fig.add_subplot(gs0[1], sharey=ax1) 
 plt.setp(ax1_2.get_yticklabels(), visible=False)
-#ax_bl = fig.add_subplot(gs[1, 0:2])
-#ax4 = fig.add_subplot(gs[1, 1]) # this plot used to contain a histogram of errorbar sizes
 ax_br = fig.add_subplot(gs[1, :])
 
 yparam = 'ScaledTransfer' #'ScaledTransfer' or 'transfer'
-# dimer spectrum, long pulse
 
-#file = '2024-07-17_J_e_ratio95.pkl'
 file = '2025-03-19_G_e_pulsetime=0.64.dat.pkl'
 data = pd.read_pickle(os.path.join(data_path, file))
 x_dimer = data['detuning']
@@ -123,27 +118,17 @@ fit = pd.read_pickle(os.path.join(data_path, 'fit_'+file))
 xs = fit['xs']/1e6
 ys=fit['ys']
 print(xs)
-#fit_Eb = fit['Eb'][0]/1000
-#fit_e_Eb = fit['e_Eb'][0]/1000
-
 
 # dimer plot (left)
 peakindex = np.where(ys==ys.max())
 xpeak = xs[peakindex]
-filt = 0.028 # arbitrarily chosen so that the plotted lineshape doesn't have sinc^2 sidebands
-#filt=1
+filt = 0.028 
 xs_filt = xs[(xs > (xpeak-filt)) & (xs < (xpeak+filt))]
 ys_filt = ys[(xs > (xpeak-filt)) & (xs < (xpeak+filt))]
 
 ax1.plot(xs_filt, ys_filt, ls='-',  lw= 1, marker='', color=dimer_color)
 ax1.fill_between(xs_filt, ys_filt,0, color=adjust_lightness(dimer_color,1.8))
-# binx, biny, binyerr, binxerr = bin_data(x_dimer, y_dimer, yerr=np.ones(len(y_dimer)), nbins=6, xerr=np.ones(len(x_dimer)))
-# ax1.plot(binx, biny, **dimer_style)
-# custom bin range
-#bin_edges = [-4.05, -4.03, -4.01, -3.99, -3.97, -3.95, -3.93, -3.91]
-bin_edges = np.arange(-4.08, -3.93, 0.015)
 bin_edges = [-4.06, -4.05, -4.04, -4.03,  -4, -3.98, -3.97,-3.96, -3.95, -3.94, -3.93]
-#bin_edges = [-4.06, -4.04, -4.03, -4.00, -3.97, -3.94]
 data['value_bin'] = pd.cut(x_dimer, bins=bin_edges)
 biny = data.groupby('value_bin')['c5_scaledtransfer'].mean()
 binx = data.groupby('value_bin')['detuning'].mean()
@@ -151,13 +136,11 @@ ax1.plot(binx, biny, **dimer_style)
 ax1.set(xlim=[-6.2, -3.8])
 ax1.set_yscale('log')
 ax1.set(
-    #xlabel=r'$\omega$ [MHz]',
     ylabel=r'$\widetilde{\Gamma}$'
 )
 ax1.xaxis.set_label_coords(0.7, -0.2)
 xticks = [-6, -5, -4]
 ax1.set_xticks(xticks)
-
 
 # HFT spectrum for ax1
 file = 'HFT_2MHz_spectra.csv'
@@ -165,11 +148,8 @@ data = pd.read_csv(os.path.join(data_path, file))
 x_name = 'detuning'
 y_name = 'loss_ScaledTransfer'
 yerr_name = 'loss_e_ScaledTransfer'
-# y_name='ScaledTransfer'
-# yerr_name='e_ScaledTransfer'
-#data = data[data[x_name] > -1]
 data[x_name] = data[x_name]/1000 # MHz
-cutoff =2.1 # cutoff because really high frequencies have bad signal and don't filter well
+cutoff =2.1 
 data = data[data[x_name] < cutoff]
 x_all = data[x_name]
 y_all = data[y_name]
@@ -182,17 +162,13 @@ res_bound_adjust = 0.01
 x_HFT = data[data[x_name] > res_bound-res_bound_adjust][x_name]
 y_HFT = data[data[x_name] > res_bound-res_bound_adjust][y_name]
 
-
 # HFT plot (right)
 def transfer_function(f, a):
-    # note the EFs are so similar in the datasets I've baked in the average
-    # EF here to make this analysis a little easier.
     EF_avg = 19.2
     Eb=3980
     return a*f**(-3/2)/(1+f*EF_avg/Eb)  # binding energy in kHz
 
 x_ress = np.linspace(min(x_res), max(x_res), 30)
-#x_ress = np.linspace(0, max(x_res),30)
 y_ress = np.interp(x_ress, x_res, y_res)
 y_ress_smooth = savgol_filter(y_ress, 5, 4)
 popt, pcov = curve_fit(transfer_function, x_HFT, y_HFT)
@@ -207,9 +183,6 @@ ax1_2.fill_between(x_ress, 0, y_ress_smooth, color=adjust_lightness(res_color,1.
 
 binx, biny, binyerr, binxerr = bin_data(x_res, y_res, yerr=np.ones(len(y_res)), nbins=4, xerr=np.ones(len(x_res)))
 ax1_2.plot(binx, biny, **res_style)
-# x_HFT.index = x_HFT.index - x_HFT.index[0]
-# y_HFT.index = y_HFT.index - y_HFT.index[0
-# binx, biny, binyerr, binxerr = bin_data(x_HFT, y_HFT, yerr=np.ones(len(y_HFT)), nbins=10, xerr=np.ones(len(x_HFT)))
 ax1_2.plot(x_HFT, y_HFT, **loss_style)
 
 # inset axis
@@ -229,15 +202,12 @@ axi.set_xticklabels(['-0.01','0','0.01'])
 ax1_2.set(xlim=[-0.2, cutoff+0.1], ylim=[0.5e-5, 7e-1])
 xticks = [0, 1, 2]
 ax1_2.set_xticks(xticks)
-#ax1_2.set(xlim=[-0.1, cutoff], ylim=[0, 0.01])
 ax1_2.set_yscale('log')
-
 
 ax1.spines['right'].set_visible(False)
 ax1_2.spines['left'].set_visible(False)
 ax1.yaxis.tick_left()
 ax1_2.yaxis.tick_right()
-#ax1_2.yick_params(axis='y', which='both', length=0)
 plt.setp(ax1_2.get_yticklabels(), visible=False)
 ax1.minorticks_off()
 yticks=[1e-5,  1e-3, 1e-1]
@@ -253,9 +223,8 @@ transfer_style = generate_plt_styles([transfer_color], ts=0.3)[0]
 transfer_style['marker'] = 'o'
 
 filter_by_Ut = False
-trap_depth = 200.0 # estimate
+trap_depth = 200.0
 EF_avg=19.2
-#file = '2024-09-10_L_e.pkl'
 file = 'HFT_2MHz_spectra.csv'
 
 data = pd.read_csv(os.path.join(data_path, file))
@@ -270,24 +239,13 @@ if filter_by_Ut:
     x = np.array(data_below[x_name])
     y = np.array(data_below[y_name])
     yerr = np.array(data_below[yerr_name])
-    #ax_br.errorbar(x, y, yerr=yerr, linestyle='', **sty, label=r'$\alpha_3 = N_3/N_\mathrm{tot}$')
 else: 
     x= np.array(data[x_name])
     y = np.array(data[y_name])
     yerr = np.array(data[yerr_name])
-    #ax_br.errorbar(x, y, yerr=yerr, linestyle='', **sty, label=r'$\alpha_3 = N_3/N_\mathrm{tot}$')
-
-# fit to both forms of the transfer rate equation, w/wout Final State Effect
-def transfer_function(f, a):
-    # note the EFs are so similar in the datasets I've baked in the average
-    # EF here to make this analysis a little easier.
-    EF_avg = 19.2
-    Eb=3980
-    return a*f**(-3/2)/(1+f*EF_avg/Eb)  # binding energy in kHz
 
 def transfer_function_no_FSE(f, a):
     return a*f**(-3/2)
-
 
 popt, pcov = curve_fit(transfer_function_no_FSE, x, y, sigma=yerr, p0=[0.05])
 perr = np.sqrt(np.diag(pcov))
@@ -295,9 +253,6 @@ popt_2, pcov_2 = curve_fit(transfer_function, x, y, sigma=yerr, p0=[0.05])
 perr_2 = np.sqrt(np.diag(pcov_2))
 
 xs = np.linspace(0.5, max(x), 100)
-
-#ax_br.plot(xs, transfer_function_no_FSE(xs, *popt), '-', color=colors[0])
-#ax_br.plot(xs, transfer_function(xs, *popt_2), '--', color=colors[0])
 
 C_FSE = popt[0] * 2*np.sqrt(2)*np.pi**2
 e_C_FSE = perr[0] * 2*np.sqrt(2)*np.pi**2
@@ -342,7 +297,6 @@ perr_2 = np.sqrt(np.diag(pcov_2))
 xs = np.linspace(0.5, max(x)+500, 500)
 
 ax_br.plot(xs, transfer_function_no_FSE(xs, *popt), '-', color=colors[1])
-#ax_br.plot(xs, transfer_function(xs, *popt_2), '--', color=colors[1])
 
 C_loss_FSE = popt[0] * 2*np.sqrt(2)*np.pi**2
 e_C_loss_FSE = perr[0] * 2*np.sqrt(2)*np.pi**2
@@ -352,7 +306,6 @@ e_C_loss = perr_2[0] * 2*np.sqrt(2)*np.pi**2
 
 print("Contact from loss with FSE is {:.2f}({:.0f})".format(C_loss_FSE, e_C_loss_FSE*1e2))
 print("Contact from loss w/out FSE is {:.2f}({:.0f})".format(C_loss, e_C_loss*1e2))
-
 
 data = pd.read_csv(os.path.join(data_path, file))
 x_name = 'ScaledDetuning'
@@ -381,11 +334,7 @@ ax_br.vlines(trap_depth/EF_avg, 0, 1.0, color='k', linestyle='--')
 # Create a Rectangle patch
 noisefloor=1e-5
 rect = patches.Rectangle((0,0), 250, noisefloor, linewidth=3, facecolor='red', fill=True, alpha = 0.2)
-# Add the patch to the Axes
 ax_br.add_patch(rect)
-# horizontal line for noise floor?
-#ax_br.plot([0, 150], [noisefloor, noisefloor], color='red', marker='', ls = '-')
-# vertical line for trap dept
 ax_br.vlines(trap_depth/EF_avg, ymin=0, ymax=1.5,ls='dashed', color='black')
 
 ax_br.set(xlabel=r'Detuning $\tilde{\omega}\,[E_F]$',
@@ -397,12 +346,8 @@ ax_br.set(xlabel=r'Detuning $\tilde{\omega}\,[E_F]$',
 ax_br.minorticks_off()
 yticks = [10e-8, 10e-6, 10e-4, 10e-2]
 ax_br.set_yticks(yticks)
-# add text
 
-#ax_br.text(1.5, 1e-1, r'$\omega^{-3/2}$')
-#ax_br.text(80, 1e-2, r'$\frac{\omega^{-3/2}}  {\frac{1}{1+\omega/\omega^*}}$')
 ax_br.text(7.5, 5e-2, r'$U_t$')
-#ax_br.legend(fontsize=8, loc='lower left')
 
 ax_br2 = ax_br.twiny()
 x_trans = x * EF_avg / 1000
@@ -421,7 +366,6 @@ ax_br2.tick_params(
     labelbottom=False,
     labeltop=True
 )
-#ax_br2.minorticks_off()
 ax_br2.set_xticklabels(['-','-','0.01','0.1','1'])
 # Hide all axis elements except top x-axis
 ax_br2.spines['bottom'].set_visible(False)
@@ -431,4 +375,3 @@ ax_br2.yaxis.set_visible(False)
 ax_br2.set_xlabel(r'Detuning $\omega$ [MHz]')
 
 fig.tight_layout()
-

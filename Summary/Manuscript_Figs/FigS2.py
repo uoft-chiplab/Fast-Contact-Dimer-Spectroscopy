@@ -48,11 +48,9 @@ linestyles = ['--',
 			  ]
 
 ### plot settings
-plt.rcParams.update(paper_settings) # from library.py
+plt.rcParams.update(paper_settings) 
 font_size = paper_settings['legend.fontsize']
-plt.rcParams['legend.fontsize'] = 6
 fig_width = 3.4 # One-column PRL figure size in inches
-subplotlabel_font = 10
 		
 fig, axs = plt.subplots(1, 2, figsize=(fig_width*6/5, fig_width*3/5)
 						)

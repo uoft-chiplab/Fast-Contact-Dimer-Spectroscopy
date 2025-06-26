@@ -28,8 +28,6 @@ from UFG_analysis import calc_contact
 from contact_interpolation import contact_interpolation as C_interp
 from scipy.optimize import curve_fit
 from warnings import catch_warnings, simplefilter
-
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
