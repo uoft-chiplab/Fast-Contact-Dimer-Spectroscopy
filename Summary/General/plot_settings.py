@@ -25,7 +25,6 @@ paper_settings = {
 				'xtick.major.size': 3,      # Shorter tick marks
 				'ytick.major.size': 3,
 				'font.family': 'sans-serif',
-				# 'text.usetex': True,       # Use LaTeX for typesetting, needs local LaTeX install
 				'axes.grid': False,       # No grid for PRL figures}
 				}
 

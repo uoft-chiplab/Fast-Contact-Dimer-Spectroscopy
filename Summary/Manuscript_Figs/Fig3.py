@@ -33,36 +33,22 @@ from warnings import catch_warnings, simplefilter
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FixedLocator, FuncFormatter
-import matplotlib.ticker as mticker
-from matplotlib import colors as colorsmpl
-import matplotlib.cm as cm
 import pickle as pkl
 
 from warnings import filterwarnings	
 filterwarnings('ignore')
 
 # plotting options
-colors = ['#1b9e77', '#d95f02', '#7570b3', '#e7298a']
-colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c']
 colors = ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e']
 
 styles = generate_plt_styles(colors, ts=0.6)
 
 ### Script options
 Talk = False
-Reevaluate = False
-Reevaluate_last_only = False
-Calc_CTheory_std = False
 Plot_HFT_Data = True
-
-# This turns on (True) and off (False) saving the data/plots 
-Save = False
-Tabulate_Results = False # tabulate final results only; for plotting purposes
 
 ### Analysis options
 Filter_Low_Atom_Number_Shots = True
-Gaussian_Cloud = False
 Final_State_Correction = True
 Correct_ac_Loss = True
 
@@ -104,19 +90,11 @@ files = ["2024-10-17_S_e",
 		  "2025-02-27_P_e",
 		  "2025-03-05_K_e",
  		 ]
-# files = ["2024-11-05_H_e"]
-
 ### plot settings
 plt.rcdefaults()
-plt.rcParams.update(paper_settings) # from library.py
+plt.rcParams.update(paper_settings) 
 font_size = paper_settings['legend.fontsize']
 fig_width = 3.4 # One-column PRL figure size in inches
-subplotlabel_font = 10
-
-# plt.rcParams.update({"figure.figsize": [12,8],
-# 					 "font.size": 14,
-# 					 "lines.markeredgewidth": 2,
-# 					 "errorbar.capsize": 0})
 
 ### Calibrations
 RabiperVpp_47MHz_2024 = 17.05/0.728 # 2024-09-16
@@ -136,25 +114,9 @@ e_RabiperVpp_43MHz_2025 = RabiperVpp_43MHz_2025 * np.sqrt(\
 			  (e_RabiperVpp_47MHz_2025/RabiperVpp_47MHz_2025)**2 +
 			  (e_RabiperVpp_47MHz_2024/RabiperVpp_47MHz_2024)**2)
 # this is about 0.35
-
-# new after comparing, and realizing we used wrong VVA to Vpp calibration
-# see rf_saturation_analysis/dimer_saturation_curves.py
 dimer_x0 = 5211 
 e_dimer_x0 = 216
 
-# Omega^2 [kHz^2] 1e saturation value fit from 09-17_C
-# HFT_x0 = 805.2923
-
-# omega^2 [kHz^2] 1e saturation average fit value from various ToTF
-# HFT_x0 = 848
-# e_HFT_x0 = 50
-
-# HFT_x0_cold = 737
-# e_HFT_x0_cold = 35
-
-# what if we should use loss saturation instead?
-# I think this is correct CD 2025-05-02
-# see rf_saturation_analysis/transfer_scaling_various_ToTF.py
 HFT_x0 = 924
 e_HFT_x0 = 93
 HFT_x0_cold = HFT_x0
@@ -165,8 +127,6 @@ def saturation_scale(x, x0):
 	return x/x0*1/(1-np.exp(-x/x0))
 
 ### ac loss corrections
-# these are from varying jump page results
-# see diagnostics/
 ToTFs = [0.26, 0.36, 0.6, 1.1]
 corr_cs = [1.00, 1.15, 1.31, 1.31]
 e_corr_cs = [0.05, 0.06, 0.08, 0.08]
@@ -176,7 +136,7 @@ e_corr_c_interp = lambda x: np.interp(x, np.array(ToTFs), np.array(e_corr_cs))
 	
 ### constants
 re = 103 * a0 # ac dimer range estimate
-Eb = 3.98 # MHz # I guesstimated this from recent ac dimer spectra
+Eb = 3.98 # MHz
 
 def a13(B):
 	''' ac scattering length '''
@@ -187,7 +147,6 @@ def a13(B):
 
 def xstar(B, EF):
 	return Eb/EF # hbar**2/mK/a13(B)**2 * (1-re/a13(Bfield))**(-1)
-
 
 ### common functions
 def linear(x, a, b):
@@ -251,8 +210,6 @@ def sinc2(x, trf):
 	t = x*trf
 	return np.piecewise(t, [t==0, t!=0], [lambda t: 1, 
 					   lambda t: (np.sin(np.pi*t)/(np.pi*t))**2])
-   # KX added the 1/2 June 2025 to make the function definition more clear. 
-   # prior to this, sinc2 seems to have been previously given the input trf/2, which is confusing.
 
 def Int2DGaussian(a, sx, sy):
 	return 2*a*np.pi*sx*sy
@@ -297,12 +254,6 @@ try:
 	    old_results_list = pkl.load(f)
 except (OSError, IOError):
     old_results_list = []
-
-if Reevaluate == True:
-	if Reevaluate_last_only == True:
-		old_results_list = old_results_list[:-1]
-	else:
-		old_results_list = []
 
 ### loop analysis over selected datasets
 save_df_index = 0
@@ -388,19 +339,7 @@ for filename in files:
 		results['C_theory'], results['Ns_theory'], results['EF_theory'], \
 			results['ToTF_theory'] = calc_contact(results['ToTF'], 
 										 results['EF'], results['barnu'])
-	
-		# sample C_theory from calibration values distributed normally to obtain std
-		if Calc_CTheory_std == True:
-			C_theory_mean, C_theory_std = MonteCarlo_estimate_std_from_function(calc_contact, 
-					[results['ToTF'], results['EF'], results['barnu']], 
-					[results['e_ToTF'], results['e_EF'], results['e_barnu']], num=200)
-			print("For nominal C_theory={:.2f}".format(results['C_theory']))
-			print("MC sampling of normal error gives mean={:.2f}±{:.2f}".format(
-										  C_theory_mean, C_theory_std))
-			results['C_theory_std'] = C_theory_std
-		else:	
-			results['C_theory_std'] = 0.01  # this is close to what is often obtained form the above
-		
+
 	# clock shift theory prediction from C_Theory
 	results['CS_theory'] = 1/(pi*results['kF']*a13(meta_df['Bfield'][0])) \
 							* results['C_theory']
@@ -481,22 +420,7 @@ for filename in files:
 	
 	dfs = [HFT_df, bg_75_df, dimer_97_df, bg_97_df]
 	dimer_dfs = [dimer_97_df, bg_97_df]
-	
-	# swap counts to Gaussian fit integrated counts if flag is true
-	if Gaussian_Cloud == True:
-		for df in dfs:
-			df['c9'] = np.abs(Int2DGaussian(df['two2D_a2'], 
-									 df['two2D_sh2'], df['two2D_sv2']))
-		# for all dfs that have c5 signal
-		for df in [HFT_df, dimer_97_df, bg_97_df]:
-			df['c5'] = np.abs(Int2DGaussian(df['two2D_a1'], 
-									 df['two2D_sh1'], df['two2D_sv1']))
-		
-		# for the HFT bg though, there is no c5 signal, so can't trust  
-		# Gaussian #1 fit parameters, just set to zero
-		df = bg_75_df
-		df['c5'] = 0  # assuming that bg offset fit param deals with bg counts
-			
+
 	# fudge the c9 counts using ff, compute other sums and fractions
 	for df in dfs:
 		df['c9'] = df['c9'] * results['ff']
@@ -1160,10 +1084,7 @@ i = 0
 ax.plot(C, I_d_ZR, 'k:'
 		, label='zero range'
 		)
-# ax.text(0.75, 0.24, 'zero range', rotation=46, rotation_mode='anchor', size=font_size)
 ax.plot(C, I_d_SqW, '--', color=colors[sty_i+2], label='SqW')
-# ax.fill_between(C, I_d_SqW*(1-SWvC_error(C)), I_d_SqW*(1+SWvC_error(C)), 
-# 				color=colors[sty_i], alpha=alpha)
 ax.plot(C, I_d_CCC, '-', color=colors[sty_i+3], label='CC')
 ax2 = ax.twinx()
 ax2.plot(C,just_I_d, marker='')
@@ -1173,26 +1094,12 @@ ax2.set_yticklabels(['0', '0.02', '0.04'])
 ax2.set_ylim([0, 0.05])
 ax.legend(frameon=False, loc='lower right')
 
-
-if Tabulate_Results == True:
-	tab_theory = {
-		'C':C,
-		'SW_ZR': I_d_ZR,
-		'SW_SqW' : I_d_SqW,
-		'SW_CCC':I_d_CCC,
-		'e_SW_SqW': SWvC_error(C) 
-	}
-	tab_theory_df = pd.DataFrame(tab_theory)
-	tab_theory_df.to_csv('clockshift/tabulated_results/subplot_b_theory.csv')
-
-
 # binned data
 if plot_options['Binned']:
 	nbins = 16
 	
 	x = df_total['C_data']
 	xerr = df_total['e_C_data']
-	#y = df_total['SW_c5'] / (df_total['a13kF'])
 	y = df_total['SW_c5'] / df_total['a13kF']
 	yerr = np.abs(df_total['e_SW_c5'])/ df_total['a13kF']
 	
@@ -1211,26 +1118,7 @@ if plot_options['Binned']:
 	
 	
 	binx, biny, binyerr, binxerr = bin_data(x, y, yerr, nbins, xerr=xerr)
-	# print(biny * a13kF)
 	ax.errorbar(binx, biny, yerr=binyerr, xerr=binxerr, label='binned', **styles[sty_i])
-	# print(biny)
-	# binx, biny, binyerr, binxerr = bin_data(x, df_total['ToTF'], df_total['e_ToTF'], nbins, xerr=xerr)
-	# print(biny)
-	# binx, biny, binyerr, binxerr = bin_data(x, df_total['EF'], df_total['e_EF'], nbins, xerr=xerr)
-	# print(biny)
-	# binx, biny, binyerr, binxerr = bin_data(x, df_total['kF'], np.ones(len(df_total['kF'])), nbins, xerr=xerr)
-	# print(biny)
-	
-	if Tabulate_Results == True:
-		tab_data = {
-			'C':binx,
-			'SW': biny,
-			'e_SW' : binyerr,
-			'e_C' : binxerr
-		}
-		tab_data_df = pd.DataFrame(tab_data)
-		tab_data_df.to_csv('clockshift/tabulated_results/subplot_b_data.csv')
-
 	
 	mask = ~np.isnan(biny)
 	
@@ -1254,7 +1142,7 @@ if plot_options['not Binned']:
 ax = axes[0]
 ax.set(ylabel=contact_label, xlabel=temperature_label, xlim=[0.2, 0.85])
 
-saturationpkl = os.path.join(data_path, 'saturation_plot_data.pkl')
+saturationpkl = os.path.join(data_path, 'saturation_plot_data_2ToTFs.pkl')
 # Create inset
 with open(saturationpkl, "rb") as f:
 	plot_data = pkl.load(f)
@@ -1284,15 +1172,6 @@ ticksx = ticksx[ticksx != 0]
 ticksy = ticksy[ticksy != 0]
 inset_ax.set_xticks(ticksx)
 inset_ax.set_yticks(ticksy)
-
-smconfig = os.path.join(data_path, 'sm_config.pkl')
-with open(smconfig, "rb") as f:
-    config = pkl.load(f)
-
-cmap = colorsmpl.LinearSegmentedColormap.from_list('my_cmap', config['colors'])
-norm = colorsmpl.Normalize(vmin=config['vmin'], vmax=config['vmax'])
-sm = cm.ScalarMappable(cmap=cmap, norm=norm)
-sm.set_array([])  # Required for colorbar to work
 
 sty_i = 1
 
@@ -1346,8 +1225,6 @@ if plot_options['not Binned']:
 		ax.errorbar(x, y, yerr=yerr, xerr=xerr, **sty, zorder=10)
 
 # final plot settings
-# fig.suptitle(plot_title)
-
 fig.tight_layout()  # note this is done before the labels on purpose
 subplot_labels = ['(a)', '(b)'
 				#   , '(c)'
@@ -1359,12 +1236,6 @@ for n, ax in enumerate(axs):
 		 )
 	
 plt.subplots_adjust(top=0.95)
-output_dir = os.path.join(proj_path, '\manuscript\manuscript_figures')
-os.makedirs(output_dir, exist_ok=True)
-
-# Now save the figure
-fig.savefig(os.path.join(output_dir, 'spectral_weight_2025-06-09.pdf'))
-# fig.savefig('clockshift/manuscript/manuscript_figures/spectral_weight_2025-06-03.pdf')
 plt.show()	
 
 def getDataFrame():

@@ -15,7 +15,6 @@ general_files_path = os.path.join(parent_dir, 'General')
 # Add the parent directory to sys.path
 if general_files_path not in sys.path:
 	sys.path.append(general_files_path)
-
 from plot_settings import *
 plt.rcParams.update(paper_settings)
 
