@@ -11,18 +11,16 @@ Typically it pulls data from manuscript_data/ and saves in manuscript_figures/
 from scipy.constants import pi
 from scipy.optimize import curve_fit
 from scipy import interpolate
+from scipy.interpolate import UnivariateSpline
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import json
 import os
 import sys
-# this is a hack to access modules in the parent directory
-# Get the current script's directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 general_files_path = os.path.join(parent_dir, 'General')
-# Add the parent directory to sys.path
 if general_files_path not in sys.path:
 	sys.path.append(general_files_path)
 
@@ -30,11 +28,6 @@ from plot_settings import *
 plt.rcParams.update(paper_settings)
 
 data_path = os.path.join(current_dir, 'manuscript_data')
-#options
-Show = True
-
-# plot shading
-tintshade = 0.6
 
 # data binning
 def bin_data(x, y, yerr, nbins, xerr=None):
@@ -119,7 +112,6 @@ ax.set(xlabel=xlabel, ylabel=ylabel,
 	ylim = [-4.5, -1.5]
 	)
 
-
 ms = 3
 color1 = "#7eb0d5"
 style1 = {'color':color1,
@@ -173,14 +165,11 @@ fit = pd.read_pickle(os.path.join(data_path, 'fit_'+file))
 xs = fit['xs']/1e6
 ys = fit['ys'] *scaling
 EF_data = 0.0133
-# set offset to 0
 offs = ys.min()
 ys = ys-offs
 y_dimer = y_dimer - offs
 
-
 json_file = 'lineshape_2024-07-17_J_e_backup.json'
-
 
 with open(os.path.join(data_path, json_file)) as f:
 	data_load = json.load(f)
@@ -218,18 +207,13 @@ ax.set(xlim=[-4.04, -3.96],
 tauF1 = 1/EF_data/2/pi
 trat1 = 640/tauF1
 
-
-from scipy.interpolate import UnivariateSpline
 spline = UnivariateSpline(xs, ys-np.max(ys)/2, s=0)
 r1, r2 = spline.roots()
 FWHM = np.abs(r1-r2) # EF
 print(f'FWHM={FWHM} MHz, or {FWHM/EF_data} EF')
 ax.text(0.2, 0.8, r'$t_\mathrm{rf} \ll \tau_F$', color=color640, fontsize=7, transform=ax.transAxes)
-# use the maximum to estimate the spectral weight if the transfer pulse were sinc^2
-#sinc fit on 2024-07-17 gives amp=6.9222e-3 +/- 4.1596e-4 (dimer_spectra_comparison.py)
-# relative uncertainty is 6%
 GammaPeak = ys.max()/scaling
-Id640 = GammaPeak/640/EF_data*2 # factor of 2 turns SW into Id
+Id640 = GammaPeak/640/EF_data*2 
 tcurve = np.linspace(1, 640, 100)
 Idcurve = GammaPeak/tcurve/EF_data
 print(f'640 us Id = {Id640}')
@@ -245,9 +229,7 @@ x_dimer2, y_dimer2, yerr_dimer2 = bin_data(data['detuning'], data['c5_scaledtran
 fit2 = pd.read_pickle(os.path.join(data_path, 'fit_'+file2))
 xs2 = fit2['xs']/1e6
 ys2 = fit2['ys'] *scaling
-#EF_data = 0.0199
 EF_data = 0.0182
-# set offset to 0
 offs = ys2.min()
 ys2 = ys2-offs
 y_dimer2 = y_dimer2 - offs
@@ -262,11 +244,8 @@ r1, r2 = spline.roots()
 FWHM = np.abs(r1-r2) 
 print(f'FWHM={FWHM} MHz, or {FWHM/EF_data} EF')
 
-# use the maximum to estimate the spectral weight if the transfer pulse were sinc^2
-# from dimer_spectra_comparison.py, fit gave amp of 1.3482e-3 +/- 1.01800733e-4
-# rel unc is 7.5% ~ 8%
 GammaPeak = ys2.max()/scaling
-Id10 = GammaPeak/10/EF_data*2 # factor of 2 turns SW into Id
+Id10 = GammaPeak/10/EF_data*2 #
 print(f'10 us Id = {Id10}')
 
 ax.set(xlim=[-4.15, -3.85],
@@ -292,7 +271,6 @@ data = data.sort_values(by='scaledtime', ascending=True)
 data['scaledtime']=1/data['scaledtime'] # tau_F/t_rf
 data['Id'] = data['Id'] * overall_scaling
 data['em_Id'] = data['em_Id'] * overall_scaling
-# trying to do some manual averaging
 df = data[data['time'] == 0.003].copy()
 t3us = df['scaledtime'].values[0]
 I3us = df['Id'].mean()
@@ -305,13 +283,10 @@ I20us_std = np.sqrt(df['em_Id'].values[0]**2 + df['em_Id'].values[1]**2)
 
 t640us = float(1/trat1)
 I640us = float(Id640) * overall_scaling
-I640us_std = I640us*0.06 # based on relative uncertainty of sinc2 fit in dimer_spectra_comparison
-
+I640us_std = I640us*0.06 
 t10us = float(1/trat2)
 I10us = float(Id10) * overall_scaling
-I10us_std = I10us*0.08 # estimated based on rel unc of sinc2 fit in dimer_spectra_comparison.py
-
-#data = data[(data['time'] != 0.003) & (data['time']!=0.020)]
+I10us_std = I10us*0.08 
 data =data[data['time']!=0.020]
 data= data[data['time']>0.0031]
 my_color = '#8D6E63'
@@ -322,7 +297,7 @@ my_style = {'color':my_color,
 				'marker':'o',
 				'markersize':5,
 				'ls':'none'}
-# low time data (somewhat arbitrary)
+
 x_dimer = data['scaledtime']
 y_dimer = data['Id'] 
 yerr_dimer = data['em_Id'] 

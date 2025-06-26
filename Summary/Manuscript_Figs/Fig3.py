@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Created by Chip lab circa 2024-2025
 
@@ -5,7 +6,6 @@ Analysis script for four shot scans: HFT, bg, dimer, bg.
 Produces the current Fig. 3 in the clockshift manuscript.
 
 """
-
 # paths
 import sys
 import os
@@ -13,7 +13,6 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 data_path = os.path.join(parent_dir, 'Data')
 general_files_path = os.path.join(parent_dir, 'General')
-# Add the parent directory to sys.path
 if general_files_path not in sys.path:
 	sys.path.append(general_files_path)
 from library import pi, h, hbar, mK, a0
@@ -95,16 +94,15 @@ font_size = paper_settings['legend.fontsize']
 fig_width = 3.4 # One-column PRL figure size in inches
 
 ### Calibrations
-RabiperVpp_47MHz_2024 = 17.05/0.728 # 2024-09-16
+RabiperVpp_47MHz_2024 = 17.05/0.728 
 e_RabiperVpp_47MHz_2024 = 0.15
 
-RabiperVpp_43MHz_2024 = 14.44/0.656 # kHz/Vpp - 2024-09-25 calibration
+RabiperVpp_43MHz_2024 = 14.44/0.656 
 e_RabiperVpp_43MHz_2024 = 0.14
 
-RabiperVpp_47MHz_2025 = 12.01/0.452 # 2025-02-12
+RabiperVpp_47MHz_2025 = 12.01/0.452 
 e_RabiperVpp_47MHz_2025 = 0.28
 
-# Fudge the 2024 based on the 2025/2024 47MHz ratio...
 RabiperVpp_43MHz_2025 = RabiperVpp_43MHz_2024 * RabiperVpp_47MHz_2025/ \
 													RabiperVpp_47MHz_2024
 e_RabiperVpp_43MHz_2025 = RabiperVpp_43MHz_2025 * np.sqrt(\
@@ -178,39 +176,12 @@ def dimer_transfer(Rab, fa, fb):
 		are determined from averaged bg shots.'''
 	return (fa - Rab*fb)/(1/2-Rab)
 
-def e_dimer_transfer(Rab, e_Rab, bg_fa, e_bg_fa, bg_fb, e_bg_fb):
-	Rabfb = Rab*bg_fb
-	e_Rabfb = Rabfb*np.sqrt((e_Rab/Rab)**2 + (e_bg_fb/bg_fb)**2)
-	numer = bg_fa - Rabfb 
-	e_numer = np.sqrt(e_Rabfb**2 + e_bg_fa**2)
-	gamma = (bg_fa - Rabfb)/(1/2-Rab)
-	e_gamma = gamma * np.sqrt((e_numer/numer)**2 + (e_Rab/Rab)**2)
-	return e_gamma
-
-def dimer_transfer_norm(fRab, bgRab, bgfa, bgfb):
-	return (bgfa - fRab*bgRab*bgfb)/(1/2-fRab*bgRab)
-
-def dimer_transfer_a(Rab, bg_fa, bg_fb):
-	bgRba = bg_fb/bg_fa
-	return (1-Rab*bgRba)/(1-2*Rab)
-
-def dimer_transfer_b(Rab, bg_fa, bg_fb):
-	bgRab = bg_fa/bg_fb
-	return (bgRab - Rab)/(1-2*Rab)
-
-def dimer_transfer_sum_half(Rab, bg_fa, bg_fb):
-	return (dimer_transfer_a(Rab, bg_fa, bg_fb) + dimer_transfer_b(Rab, bg_fa, bg_fb))/2
-
-
 # sinc^2 dimer lineshape functions
 def sinc2(x, trf):
 	"""sinc^2 normalized to sinc^2(0) = 1"""
 	t = x*trf
 	return np.piecewise(t, [t==0, t!=0], [lambda t: 1, 
 					   lambda t: (np.sin(np.pi*t)/(np.pi*t))**2])
-
-def Int2DGaussian(a, sx, sy):
-	return 2*a*np.pi*sx*sy
 
 # data binning
 def bin_data(x, y, yerr, nbins, xerr=None):
@@ -443,7 +414,7 @@ for filename in files:
 	### SATURATION CORRECTION
 	###
 	
-	# the fit parameters assume Omega^2 is in kHz^2... "sorry"
+	# the fit parameters assume Omega^2 is in kHz^2
 	OmegaR_dimer_kHz2 = OmegaR_dimer**2/(2*np.pi)**2
 	e_OmegaR_dimer_kHz2 = 2*OmegaR_dimer*e_OmegaR_dimer/(2*np.pi)**2
 	
@@ -850,11 +821,6 @@ for filename in files:
 ####### Saving Results ########
 ###############################
 	
-	if Save == True:
-		savedf = pd.DataFrame(results, index=[save_df_index])
-		save_df_index += 1
-		save_df_row_to_xlsx(savedf, savefile, filename)
-		
 	results_list.append(results)
 	
 	# dump results into pickle
@@ -1061,9 +1027,7 @@ alpha = 0.3
 sty_i = 0
 
 ### intitialize plots
-fig, axs = plt.subplots(2,1, figsize=[fig_width, fig_width*5/5], height_ratios=[0.8,0.9
-																				# ,1.2
-																				])
+fig, axs = plt.subplots(2,1, figsize=[fig_width, fig_width*5/5], height_ratios=[0.8,0.9])
 axes = axs.flatten()
 
 contact_label = r"Contact,  $C/N k_F$"
@@ -1108,11 +1072,11 @@ if plot_options['Binned']:
 	es_ell_d_SW_fit =  np.sqrt(HFT_error_const**2 + dimer_error**2) * ell_d_SW_fit
 	
 	print("Slope of Spectral Weight:")
-	print("fit \ell_d = {:.0f}({:.0f})({:.0f}) a_0".format(ell_d_SW_fit, 
+	print("fit \\ell_d = {:.0f}({:.0f})({:.0f}) a_0".format(ell_d_SW_fit, 
 												e_ell_d_SW_fit, es_ell_d_SW_fit))
 	
-	print("CCC \ell_d = {:.0f} a_0".format(ell_d_CCC))
-	print("SqW \ell_d_SqW = {:.0f} a_0".format(ell_d_SqW))
+	print("CCC \\ell_d = {:.0f} a_0".format(ell_d_CCC))
+	print("SqW \\ell_d_SqW = {:.0f} a_0".format(ell_d_SqW))
 	
 	
 	binx, biny, binyerr, binxerr = bin_data(x, y, yerr, nbins, xerr=xerr)
@@ -1156,9 +1120,7 @@ inset_ax.set(
 	ylabel = r'$\alpha$',
 	xlabel = r'$\Omega_{23}^2/(2\pi)^2$ [kHz$^2]$',
 	ylim = [0, 0.5],
-	xlim = [0,1000],
-
-)
+	xlim = [0,1000])
 inset_ax.tick_params(labelsize=5)
 inset_ax.xaxis.label.set_size(6)
 inset_ax.yaxis.label.set_size(7)
@@ -1187,30 +1149,6 @@ if plot_options['Binned']:
 	yerr = df_total['e_C_data']
 	binx, biny, binyerr, binxerr = bin_data(x, y, yerr, nbins, xerr=xerr)
 	ax.errorbar(binx, biny, yerr=binyerr, xerr=binxerr, label='binned', **styles[sty_i], zorder=10)
-	
-	if Tabulate_Results:
-		a_binx = binx
-		a_biny = biny
-		a_binyerr = binyerr
-		a_binxerr = binxerr
-		a_ttf = xs
-		a_C = C_interp(xs)
-		a_HFT_error = HFT_error(xs)
-		a_data = {
-			'TTF':a_binx,
-			'C': a_biny,
-			'e_C' : a_binyerr,
-			'e_TTF' : a_binxerr
-		}
-		a_data_df = pd.DataFrame(a_data)
-		a_theory = {
-			'TTF':xs,
-			'C':C_interp(xs),
-			'e_C':+HFT_error(xs),
-			}
-		a_theory_df = pd.DataFrame(a_theory)
-		a_data_df.to_csv('clockshift/tabulated_results/subplot_a_data.csv')
-		a_theory_df.to_csv('clockshift/tabulated_results/subplot_a_theory.csv')
 	
 
 # data
