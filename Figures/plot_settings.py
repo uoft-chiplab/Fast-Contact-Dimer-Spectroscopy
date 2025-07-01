@@ -1,6 +1,7 @@
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as mc
+import numpy as np
 import colorsys
 
 # plt settings
@@ -14,6 +15,7 @@ paper_settings = {
 				'xtick.labelsize': 7,      # Tick label font size (x-axis)
 				'ytick.labelsize': 7,      # Tick label font size (y-axis)
 				'legend.fontsize': 7,      # Legend font size
+				'figure.figsize': (3.4, 2.4),    # One-column PRL figure size in inches
 				'figure.dpi': 300,        # Publication-ready resolution
 				'lines.linewidth': 1,      # Thinner lines for compactness
 				"lines.linestyle":'',
@@ -99,3 +101,40 @@ def adjust_lightness(color, amount=0.5):
 def format_axes(fig):
     for i, ax in enumerate(fig.axes):
         ax.tick_params(labelbottom=False, labelleft=False)
+        
+# data binning
+def bin_data(x, y, yerr, nbins, xerr=None):
+
+	if np.any(yerr == 0):
+		avg_nonzero_yerr = np.mean(yerr[yerr>0])
+		yerr[yerr==0] = avg_nonzero_yerr
+
+	n, _ = np.histogram(x, bins=nbins)
+	sy, _ = np.histogram(x, bins=nbins, weights=y/(yerr*yerr))
+	syerr2, _ = np.histogram(x, bins=nbins, weights=1/(yerr*yerr))
+	sy2, _ = np.histogram(x, bins=nbins, weights=y*y)
+	mean = sy / syerr2
+	sem = np.sqrt(sy2/n - mean*mean)/np.sqrt(n)
+	e_mean = 1/np.sqrt(syerr2)
+	xbins = (_[1:] + _[:-1])/2 # mid points between bin edges
+	
+	# set error as yerr if n=1 for bin
+	for i, num_in_bin in enumerate(n):
+		if num_in_bin == 1:
+			for j in range(len(y)):
+				if mean[i] == y[j]:
+					sem[i] += yerr[j]
+					e_mean[i] = yerr[j]
+					xbins[i] = x[j]
+					break
+		else:
+			continue
+		
+	# average xerr
+	if xerr is not None:
+		sxerr, _ = np.histogram(x, bins=nbins, weights=xerr)
+		mean_xerr = sxerr / n
+		return xbins, mean, e_mean, mean_xerr
+	
+	else:
+		return xbins, mean, e_mean

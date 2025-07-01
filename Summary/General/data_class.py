@@ -12,7 +12,7 @@ Relies on fit_functions.py
 import os 
 from glob import glob
 from library import *
-from plot_settings import *
+from Figures.plot_settings import *
 from fit_functions import *
 from scipy.optimize import curve_fit
 import pandas as pd
