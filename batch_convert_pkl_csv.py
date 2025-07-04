@@ -42,4 +42,4 @@ def batch_convert(input_dir, output_dir=None):
             print(print(f" - {f.name} failed"))
 
 if __name__ == "__main__":
-    batch_convert(r"clockshift/rf_saturation_analysis/saturation_data", "data/")
+    batch_convert(r"Summary/Data", "data/Fig3")
