@@ -4,11 +4,8 @@ Excel to CSV Batch Converter
 Converts all Excel files (.xlsx, .xls) in a directory to CSV format.
 """
 
-import os
-import sys
 import pandas as pd
 from pathlib import Path
-import argparse
 from typing import List, Optional
 
 def find_excel_files(directory: str) -> List[Path]:
@@ -108,7 +105,7 @@ def batch_convert(input_dir: str, output_dir: Optional[str] = None,
 
 if __name__ == "__main__":
 
-    input_dir = "./" #Directory containing Excel files to convert
+    input_dir = "/Users/maggie/Documents/Chip lab analysis/Fast-Contact-Dimer-Spectroscopy/Summary/Manuscript_Figs" #Directory containing Excel files to convert
     output = "./" #Output directory for CSV files (default: same as input)
     sheet = "" #Specific sheet name to convert (default: all sheets)
 

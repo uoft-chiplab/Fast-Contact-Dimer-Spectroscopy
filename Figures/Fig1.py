@@ -4,6 +4,7 @@
 from plot_settings import colors, adjust_lightness, paper_settings, generate_plt_styles, bin_data
 from scipy.optimize import curve_fit
 from scipy.signal import savgol_filter
+from scipy.stats import binned_statistic
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -58,26 +59,27 @@ res_style['markersize']=msize
 # cutoff because really high frequencies have bad signal and don't filter well
 cutoff = 2.1
 res_bound = 0.05 # upper bound on res transfer
-hft_bound = res_bound - 0.01 # lower bound on hft
+hft_bound = res_bound-0.01 # lower bound on hft
 filt = 0.028 # arbitrarily chosen so that the plotted lineshape doesn't have sinc^2 sidebands
 
 ### load data
 # dimer
-dimer_data_fname = 'Figures/data/2025-03-19_G_e_pulsetime=0.64_avgdata.csv'
+dimer_data_fname = 'Figures/data/Fig1/2025-03-19_G_e_pulsetime=0.64.csv'
 dimer_data = pd.read_csv(dimer_data_fname)
 x_dimer, y_dimer, yerr_dimer = dimer_data[['detuning', 'c5', 'e_c5']].values.T
-# bin_edges = [-4.06, -4.05, -4.04, -4.03,  -4, -3.98, -3.97,-3.96, -3.95, -3.94, -3.93]
-# dimer_data['value_bin'] = pd.cut(x_dimer, bins=bin_edges)
-# x_dimer_bin = dimer_data.groupby('value_bin')['c5_scaledtransfer'].mean()
-# y_dimer_bin = dimer_data.groupby('value_bin')['detuning'].mean()
+bin_edges = [-4.06, -4.05, -4.04, -4.03,  -4, -3.98, -3.97,-3.96, -3.95, -3.94, -3.93]
+x_dimer_bin = binned_statistic(x_dimer, x_dimer, statistic='mean', bins=bin_edges)[0]
+y_dimer_bin = binned_statistic(x_dimer, y_dimer, statistic='mean', bins=bin_edges)[0]
 
 # transfer
-fname = 'Figures/data/HFT_2MHz_spectra.csv' # transfer
+fname = 'Figures/data/Fig1/HFT_2MHz_spectra.csv' # transfer
 data = pd.read_csv(fname)
 data['detuning'] /= 1000 # convert to MHz
 data = data[data['detuning'] < cutoff]
+# ignore datasets with 0.2 ms pulse time for resonant transfer
+data = data[(data['detuning'] > 0.0) | (data['pulse_time'] != 0.2)]
 
-x_res, y_res = data.loc[data.detuning <= res_bound]\
+x_res, y_res = data.loc[(data.detuning <= res_bound)]\
                 [['detuning', 'loss_ScaledTransfer']].values.T
 x_res_bin, y_res_bin, __, __ = bin_data(x_res, y_res, yerr=np.ones(len(y_res)), 
                                         nbins=4, xerr=np.ones(len(x_res)))
@@ -88,10 +90,10 @@ x_HFT, y_HFT, yerr_HFT = data.loc[data.detuning > hft_bound]\
 ### make fit
 # dimer
 # #load x,y values for dimer fit from precomputed points
-fit_data_fname = 'Figures/data/2025-03-19_G_e_pulsetime=0.64_fit.csv'
+fit_data_fname = 'Figures/data/Fig1/fit_2025-03-19_G_e_pulsetime=0.64.csv'
 dimer_fit = pd.read_csv(fit_data_fname)
-xpeak = dimer_fit['x'][dimer_fit['y'].argmax()]
 dimer_fit['x'] /= 1e6
+xpeak = dimer_fit['x'][dimer_fit['y'].argmax()]
 # crop around peak to avoid sinc^2 side bands
 dimer_fit = dimer_fit[(dimer_fit.x > (xpeak - filt)) & \
                       (dimer_fit.x < (xpeak + filt))]
@@ -110,7 +112,7 @@ popt_HFT, __ = curve_fit(transfer_function, x_HFT, y_HFT)
 ax1.plot(x_dimer_fit, y_dimer_fit, ls='-', color=dimer_color)
 ax1.fill_between(x_dimer_fit, y_dimer_fit, 
                  0, color=adjust_lightness(dimer_color,1.8))
-ax1.plot(x_dimer, y_dimer, **dimer_style)
+ax1.plot(x_dimer_bin, y_dimer_bin, **dimer_style)
 
 # HFT plot (right)
 x_HFTs = np.linspace(min(x_HFT), max(x_HFT),30)
