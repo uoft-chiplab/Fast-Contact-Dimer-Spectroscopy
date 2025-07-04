@@ -4,7 +4,6 @@
 from plot_settings import colors, adjust_lightness, paper_settings, generate_plt_styles, bin_data
 from scipy.optimize import curve_fit
 from scipy.signal import savgol_filter
-from scipy.stats import binned_statistic
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -68,8 +67,7 @@ dimer_data_fname = 'Figures/data/Fig1/2025-03-19_G_e_pulsetime=0.64.csv'
 dimer_data = pd.read_csv(dimer_data_fname)
 x_dimer, y_dimer, yerr_dimer = dimer_data[['detuning', 'c5', 'e_c5']].values.T
 bin_edges = [-4.06, -4.05, -4.04, -4.03,  -4, -3.98, -3.97,-3.96, -3.95, -3.94, -3.93]
-x_dimer_bin = binned_statistic(x_dimer, x_dimer, statistic='mean', bins=bin_edges)[0]
-y_dimer_bin = binned_statistic(x_dimer, y_dimer, statistic='mean', bins=bin_edges)[0]
+x_dimer_bin, y_dimer_bin, __ = bin_data(dimer_data['detuning'], dimer_data['c5_scaledtransfer'], dimer_data['em_c5_scaledtransfer'], nbins=bin_edges)
 
 # transfer
 fname = 'Figures/data/Fig1/HFT_2MHz_spectra.csv' # transfer
