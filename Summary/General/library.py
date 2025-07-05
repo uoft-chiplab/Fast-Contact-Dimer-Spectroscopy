@@ -10,7 +10,7 @@ current_dir = os.path.dirname(__file__)
 
 from scipy.constants import pi, hbar, h, k as kB
 from scipy.integrate import simpson, cumulative_trapezoid
-from scipy.optimize import fsolve
+from scipy.special import gamma
 import numpy as np
 
 import pandas as pd
@@ -24,6 +24,21 @@ gJ = gS
 mK = 39.96399848 * uatom
 ahf = -h * 285.7308E6 # For groundstate 
 gI = 0.000176490 # total nuclear g-factor
+
+# Feshbach resonance parameters
+aB = a0
+B095 = 224.2            
+B097 = 202.15           
+aBG95 = 167.3 * a0        
+Delta95 = 7.2             
+sresAC = 1.9        
+a95atB097 = 221.46296*aB
+re95atB097 = 103*aB    
+
+# Derived quantities
+r0K40 = 65.02231404 * aB
+abar40K = 4 * np.pi / gamma(0.25)**2 * r0K40
+re0 = gamma(0.25)**4 * abar40K / (6 * np.pi**2)
 
 def VVAtoVppInterpolation(file):
 	"""Returns interpolation function based on VVA to Vpp file."""
