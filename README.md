@@ -1,6 +1,8 @@
 # Fast-Contact-Dimer-Spectroscopy
 This repo is for all code associated with the fast contact dimer spectroscopy project.
 
+Note: Code in the Figures/ folder must be run from the main directory.
+
 The summary folder is a cleaned up version of the data analysis used for the paper _. To run all of this code you need to use 
 
 General files:
