@@ -1,5 +1,5 @@
 # Fast-Contact-Dimer-Spectroscopy
-This repo is for all code associated with the fast contact dimer spectroscopy project.
+This is a self-contained repository for all code associated with the fast contact dimer spectroscopy project.
 
 Note: Code in the Figures/ folder must be run from the main directory.
 
